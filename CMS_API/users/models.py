@@ -3,7 +3,7 @@ from django.db import models
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from .validators import ValidateFileExtension
-from .validators import UppercaseValidator, LowercaseValidator
+from .validators import UppercaseValidator, LowercaseValidator, MinimumLengthValidator, OnlyNumberValidator
 
 class MyUserManager(BaseUserManager):
     """
@@ -38,7 +38,7 @@ class MyUserManager(BaseUserManager):
 
     def create_superuser(self, email, password=None):
         user = self.create_user(
-            email,
+            email=self.normalize_email(email),
             password=password,
             is_staff=True,
             is_admin=True
@@ -48,36 +48,38 @@ class MyUserManager(BaseUserManager):
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
-    username = None
+    username = models.CharField(max_length=20)
     phone_number = models.CharField(max_length=13)
-    pincode = models.CharField(max_length=6)
+    pincode = models.CharField(max_length=6,validators=[OnlyNumberValidator])
     is_active = models.BooleanField(default =True)
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ['username']
 
     objects = MyUserManager
 
     def __str__(self):
         return self.email
 
-    # def has_perm(self,perm, obj=None):
-    #     """ Does the user have specific permission? """
-    #     # Simplest possible answer: Yes, always
-    #     return True
-    #
-    # def has_module_perms(self, app_label):
-    #     """Does the user have permissions to view the app `app_label`?"""
-    #     # Simplest possible answer: Yes, always
-    #     return True
+    def has_perm(self,perm, obj=None):
+        """ Does the user have specific permission? """
+        # Simplest possible answer: Yes, always
+        return True
+
+    def has_module_perms(self, app_label):
+        """Does the user have permissions to view the app `app_label`?"""
+        # Simplest possible answer: Yes, always
+        return True
 
 
 class Content(models.Model):
+    author = models.ForeignKey(User, on_delete=models.CASCADE,)
     title = models.CharField(max_length=30, blank=False)
     body = models.CharField(max_length=300, blank=False)
     summary = models.CharField(max_length=60, blank=False)
-    category = models.CharField(max_length=300,  default=None)
-    document = models.FileField(validators=[ValidateFileExtension], default=None)
+    category = models.CharField(max_length=300)
+    document = models.FileField(validators=[ValidateFileExtension],
+                                upload_to='upload_content_doc/', blank=False)
 
     def __str__(self):
         return self.title
