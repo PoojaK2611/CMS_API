@@ -1,25 +1,29 @@
 
-from rest_framework import viewsets, status, permissions
 from .models import User, Content
 from .serializers import UserSerializer, ContentSerializer
+
+from rest_framework import viewsets, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action, permission_classes
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import login, logout
 from django.contrib.auth.hashers import check_password
-from rest_framework.views import APIView
-from rest_framework.authentication import TokenAuthentication
 
+import logging
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 class UserViewSet(viewsets.ModelViewSet):
     # queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return User.objects.all()
 
-    @action(detail=False, methods=["POST"])
+    @action(detail=False, methods=["POST"], permission_classes=[~IsAuthenticated])
     def login_with_password(self,request):
         try:
             email = request.data.get('email')
@@ -45,6 +49,7 @@ class UserViewSet(viewsets.ModelViewSet):
                     Token.objects.create(user=user)
                     print(token.key)
                     token=Token.objects.filter(user=user).first()
+
                 response_data = serializer.data
                 response_data['token']= token.key
                 login(request,user)
@@ -52,7 +57,7 @@ class UserViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'Error':str(e)},status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @action(detail=False, methods=['POST'])
+    @action(detail=False, methods=['POST'], permission_classes=[IsAuthenticated])
     def logout(self,request):
         try:
             if request.user:
@@ -67,51 +72,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class ContentViewSet(viewsets.ModelViewSet):
     serializer_class = ContentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return User.objects.all()
-    # """
-    # Retrieve , Update and Delete Content instance
-    # """
-    # def get_object(self,id):
-    #     try:
-    #         return Content.objects.get(id=id)
-    #     except Content.DoesNotExist:
-    #         return Response(status=status.HTTP_404_NOT_FOUND)
-    #
-    # @permission_classes((permissions.IsAuthenticated,))
-    # def get(self,request,pk, format=None):
-    #     content = self.get_object(pk)
-    #     serializer = ContentSerializer(content)
-    #     return Response(serializer.data)
-    #
-    # @permission_classes((permissions.IsAuthenticated,))
-    # def put(self,request, pk, format=None):
-    #     content = self.get_object(pk)
-    #     serializer = ContentSerializer(content, data=request.data)
-    #     """"
-    #     Check whether user is authorized to update
-    #     """
-    #     user = request.user
-    #     if content.user != user:
-    #         return Response({"detail": "You don't have permission to edit that."})
-    #
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    #
-    # @permission_classes((permissions.IsAuthenticated,))
-    # def delete(self,request, pk, format=None):
-    #     content = self.get_object(pk)
-    #     """"
-    #       Check whether user is authorized to update
-    #     """
-    #     user = request.user
-    #     if content.user != user:
-    #         return Response({"detail": "You don't have permission to delete that."})
-    #
-    #     content.delete()
-    #     return Response(status=status.HTTP_204_NO_CONTENT)
-
+        return Content.objects.all()

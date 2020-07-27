@@ -5,8 +5,16 @@ from .models import Content, User
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
-from .validators import UppercaseValidator, LowercaseValidator, MinimumLengthValidator, OnlyNumberValidator
 
+from django.core.exceptions import ValidationError
+from django.utils.translation import ugettext as _
+import re
+
+def UppercaseLowercaseValidator(value):
+    if not re.findall('[A-Z]', value):
+        raise ValidationError(_("The password must contain at least 1 uppercase letter, A-Z."))
+    elif not re.findall('[a-z]', value):
+        raise ValidationError(_("The password must contain at least 1 lowercase letter, a-z."))
 
 class UserCreationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required
@@ -14,11 +22,10 @@ class UserCreationForm(forms.ModelForm):
     first_name = forms.CharField(label='First Name')
     last_name = forms.CharField(label='Last Name')
     phone_number = forms.CharField(max_length=10)
-    pincode = forms.CharField(max_length=6, validators=[OnlyNumberValidator])
-    password1 = forms.CharField(label='Password', widget=forms.PasswordInput,
-                                validators=[MinimumLengthValidator, UppercaseValidator, LowercaseValidator])
+    pincode = forms.CharField(max_length=6)
+    password1 = forms.CharField(label='Password', widget=forms.PasswordInput, validators=[UppercaseLowercaseValidator])
     password2 = forms.CharField(label='Password Confirmation', widget=forms.PasswordInput,
-                                validators=[MinimumLengthValidator, UppercaseValidator, LowercaseValidator])
+                                validators=[UppercaseLowercaseValidator])
 
     class Meta:
         model = User
@@ -30,6 +37,7 @@ class UserCreationForm(forms.ModelForm):
         password2 = self.cleaned_data.get("password2")
         if password1 and password2 and password1 != password2:
             raise forms.ValidationError("Passwords don't match")
+        # UppercaseValidator.validate(self.cleaned_data.get('password1'),None)
         return password2
 
     def save(self, commit=True):
