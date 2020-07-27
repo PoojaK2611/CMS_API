@@ -1,7 +1,5 @@
 from django import forms
 from django.contrib import admin
-from .models import Content, User
-# from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
@@ -10,11 +8,15 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
 import re
 
+from .models import Content, User
+
+
 def UppercaseLowercaseValidator(value):
     if not re.findall('[A-Z]', value):
         raise ValidationError(_("The password must contain at least 1 uppercase letter, A-Z."))
     elif not re.findall('[a-z]', value):
         raise ValidationError(_("The password must contain at least 1 lowercase letter, a-z."))
+
 
 class UserCreationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required

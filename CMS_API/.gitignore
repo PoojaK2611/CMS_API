@@ -111,8 +111,8 @@ env.bak/
 venv.bak/
 
 
-#  documentation
-.upload_content_doc/
+#  document
+upload_content_doc/
 
 # mypy
 .mypy_cache/
@@ -121,5 +121,19 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-.idea/
 media/
+
+#If using Pycharm
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/dictionaries
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.xml
+.idea/**/dataSources.local.xml
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/uiDesigner.xml
+.idea/**/gradle.xml
+.idea/**/libraries
+*.iws /out/
