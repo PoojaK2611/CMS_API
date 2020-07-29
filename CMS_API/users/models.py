@@ -1,8 +1,10 @@
 from django.db import models
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
-from django.core.exceptions import ValidationError
 
+from django.core.exceptions import ValidationError
+from django.utils.translation import ugettext as _
+import re
 
 class MyUserManager(BaseUserManager):
     def create_user(self, email, password=None, is_staff=False, is_admin=False, is_active=True):
@@ -30,12 +32,20 @@ class MyUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
+def UppercaseLowercaseValidator(value):
+    if not re.findall('[A-Z]', value):
+        raise ValidationError(_("The password must contain at least 1 uppercase letter, A-Z."))
+    elif not re.findall('[a-z]', value):
+        raise ValidationError(_("The password must contain at least 1 lowercase letter, a-z."))
+    elif len(value) < 9:
+        raise ValidationError(_("Password is too short. It must contain at least 8 characters."))
+
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=15)
-    password = models.CharField(max_length=80)
-    phone_number = models.CharField(max_length=13)
+    password = models.CharField(max_length=80, validators=[UppercaseLowercaseValidator])
+    phone_number = models.CharField(max_length=10)
     pincode= models.CharField(max_length=6)
     is_active = models.BooleanField(default=True)
 

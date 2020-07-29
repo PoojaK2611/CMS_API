@@ -16,6 +16,8 @@ def UppercaseLowercaseValidator(value):
         raise ValidationError(_("The password must contain at least 1 uppercase letter, A-Z."))
     elif not re.findall('[a-z]', value):
         raise ValidationError(_("The password must contain at least 1 lowercase letter, a-z."))
+    elif len(value) < 9:
+        raise ValidationError(_("Password is too short. It must contain at least 8 characters."))
 
 
 class UserCreationForm(forms.ModelForm):

@@ -6,10 +6,17 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'email','first_name', 'last_name', 'phone_number', 'pincode']
+        fields = ['email', 'first_name', 'last_name', 'phone_number', 'pincode']
 
 
 class ContentSerializer(serializers.ModelSerializer):
+    author = UserSerializer(required=False, read_only=True)
+
     class Meta:
         model = Content
-        fields = ['id', 'title', 'body', 'summary', 'category', 'document']
+        fields = ['title', 'body', 'summary', 'category', 'document', 'author']
+
+    def create(self, validated_data):
+        validated_data["author"] = self.context.get('request').user
+        return super().create(validated_data)
+

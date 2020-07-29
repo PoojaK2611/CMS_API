@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action, permission_classes
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
-
+from rest_framework import filters
 from django.contrib.auth import login, logout
 from django.contrib.auth.hashers import check_password
 
@@ -15,6 +15,7 @@ import logging
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
+
 
 class UserViewSet(viewsets.ModelViewSet):
     # queryset = User.objects.all()
@@ -74,6 +75,12 @@ class UserViewSet(viewsets.ModelViewSet):
 class ContentViewSet(viewsets.ModelViewSet):
     serializer_class = ContentSerializer
     permission_classes = [IsAuthenticated]
+
+    """
+        Search functionality 
+    """
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['title', 'body', 'summary', 'category']
 
     def get_queryset(self):
         return Content.objects.all()
